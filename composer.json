@@ -1,0 +1,25 @@
+{
+    "name": "az/laravel",
+    "description": "Extension for laravel.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "AZ\\Laravel\\": "src/"
+        },
+        "files": [
+            "src/define.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Adrian Zurkiewicz",
+            "email": "adrian@zurkiewicz.net"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "az/core": "^1.0",
+        "az/project": "^1.0"
+    }
+}

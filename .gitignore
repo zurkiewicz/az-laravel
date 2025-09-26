@@ -1,0 +1,22 @@
+# Composer
+/vendor/
+/composer.lock
+
+# PHPUnit
+.phpunit.result.cache
+
+# IDE / OS
+/.idea/
+/.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs & caches
+*.log
+cache/
+
+# Ignore environment files
+.env
+
+# Test
+/test/

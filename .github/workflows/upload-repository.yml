@@ -1,0 +1,51 @@
+name: Publish Composer package to Nexus (hosted)
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+
+      - name: Repository credentials
+        run: |
+          composer config --global repositories.az composer https://repo.sabau360.net/repository/sabau360/
+          composer config --global http-basic.repo.sabau360.net ${{ secrets.NEXUS_USERNAME }} ${{ secrets.NEXUS_PASSWORD }}
+
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - id: ver
+        name: Compute plain SemVer (strip leading 'v')
+        shell: bash
+        run: |
+          # If ref_name starts with 'v', drop it; otherwise keep as-is.
+          echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"        
+
+
+      - name: Publish to Nexus (hosted)
+        run: php bin/nexus_push.php "${NEXUS_REPOSITORY_URL}" "${NEXUS_USERNAME}" "${NEXUS_PASSWORD}" "${VERSION}"
+        env:
+          NEXUS_REPOSITORY_URL: ${{ secrets.NEXUS_REPOSITORY_URL }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+          VERSION: ${{ steps.ver.outputs.version }}
+
+
+
