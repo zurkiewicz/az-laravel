@@ -16,12 +16,28 @@ $zip = new ZipArchive();
 $zipPath = sys_get_temp_dir() . '/' . str_replace('/', '-', $pkg) . '-' . $version . '.zip';
 $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
-$root = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(getcwd(), FilesystemIterator::SKIP_DOTS));
-foreach ($root as $file) {
+$rootIter = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator(getcwd(), FilesystemIterator::SKIP_DOTS)
+);
+
+foreach ($rootIter as $file) {
+    /** @var SplFileInfo $file */
+    if (!$file->isFile()) {
+        continue; // add only files
+    }
+
+    // Build relative path and normalize to forward slashes
     $rel = substr($file->getPathname(), strlen(getcwd()) + 1);
-    if (preg_match('#^(vendor/|\.git/|composer\.lock)$#', $rel)) continue;
-    if ($file->isFile()) $zip->addFile($file->getPathname(), $rel);
+    $rel = ltrim(str_replace('\\', '/', $rel), '/');
+
+    // Skip vendor/, .git/ (any depth) and the root-level composer.lock
+    if (preg_match('#^(vendor/|\.git/)#', $rel) || $rel === 'composer.lock') {
+        continue;
+    }
+
+    $zip->addFile($file->getPathname(), $rel);
 }
+
 $zip->close();
 
 // Upload via PUT to composer endpoint
