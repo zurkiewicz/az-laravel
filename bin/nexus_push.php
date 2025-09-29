@@ -16,7 +16,7 @@ $zip = new ZipArchive();
 $zipPath = sys_get_temp_dir() . '/' . str_replace('/', '-', $pkg) . '-' . $version . '.zip';
 $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
-
+$base = getcwd();
 
 // Directory iterator with dots skipped
 $dirIter = new RecursiveDirectoryIterator($base, FilesystemIterator::SKIP_DOTS);
@@ -26,7 +26,17 @@ $filterIter = new RecursiveCallbackFilterIterator(
     $dirIter,
     function (SplFileInfo $current, $key, RecursiveDirectoryIterator $iterator) use ($base) {
 
-        $skip = ['vendor', '.git', '.github', '.gitattributes', '.gitignore', 'composer.lock', 'nexus_push.php'];
+        $skip = [
+            '.env', 
+            'vendor', 
+            'test', 
+            '.git', 
+            '.github', 
+            '.gitattributes', 
+            '.gitignore', 
+            'composer.lock', 
+            'bin/nexus_push.php',
+        ];
 
         // Normalize relative path to forward slashes
         $rel = ltrim(str_replace('\\', '/', substr($current->getPathname(), strlen($base) + 1)), '/');
