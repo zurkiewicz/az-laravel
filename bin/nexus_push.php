@@ -16,29 +16,50 @@ $zip = new ZipArchive();
 $zipPath = sys_get_temp_dir() . '/' . str_replace('/', '-', $pkg) . '-' . $version . '.zip';
 $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
-$rootIter = new RecursiveIteratorIterator(
-    new RecursiveDirectoryIterator(getcwd(), FilesystemIterator::SKIP_DOTS)
+
+
+// Directory iterator with dots skipped
+$dirIter = new RecursiveDirectoryIterator($base, FilesystemIterator::SKIP_DOTS);
+
+// Filter that avoids descending into vendor/ and .git/
+$filterIter = new RecursiveCallbackFilterIterator(
+    $dirIter,
+    function (SplFileInfo $current, $key, RecursiveDirectoryIterator $iterator) use ($base) {
+
+        $skip = ['vendor', '.git', '.github', '.gitattributes', '.gitignore', 'composer.lock', 'nexus_push.php'];
+
+        // Normalize relative path to forward slashes
+        $rel = ltrim(str_replace('\\', '/', substr($current->getPathname(), strlen($base) + 1)), '/');
+
+        // If it's a directory named vendor or .git at this level, skip its subtree
+        if ($current->isDir()) {
+            $name = $current->getFilename();
+            if (in_array($name, $skip)) {
+                return false; // do not recurse into this directory
+            }
+            return true;
+        }
+
+        // Skip specific root-level files
+        if (in_array($rel, $skip)) {
+            return false;
+        }
+
+        return true;
+    }
 );
 
-foreach ($rootIter as $file) {
+$iter = new RecursiveIteratorIterator($filterIter, RecursiveIteratorIterator::LEAVES_ONLY);
+
+foreach ($iter as $file) {
     /** @var SplFileInfo $file */
-    if (!$file->isFile()) {
-        continue; // add only files
-    }
-
-    // Build relative path and normalize to forward slashes
-    $rel = substr($file->getPathname(), strlen(getcwd()) + 1);
-    $rel = ltrim(str_replace('\\', '/', $rel), '/');
-
-    // Skip vendor/, .git/ (any depth) and the root-level composer.lock
-    if (preg_match('#^(vendor/|\.git/)#', $rel) || $rel === 'composer.lock') {
-        continue;
-    }
-
+    $rel = ltrim(str_replace('\\', '/', substr($file->getPathname(), strlen($base) + 1)), '/');
     $zip->addFile($file->getPathname(), $rel);
 }
 
 $zip->close();
+
+
 
 // Upload via PUT to composer endpoint
 $ch = curl_init();
