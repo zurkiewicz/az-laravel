@@ -35,7 +35,6 @@ $filterIter = new RecursiveCallbackFilterIterator(
             '.gitattributes', 
             '.gitignore', 
             'composer.lock', 
-            'bin/nexus_push.php',
         ];
 
         // Normalize relative path to forward slashes

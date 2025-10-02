@@ -40,7 +40,7 @@ jobs:
 
 
       - name: Publish to Nexus (hosted)
-        run: php bin/nexus_push.php "${NEXUS_REPOSITORY_URL}" "${NEXUS_USERNAME}" "${NEXUS_PASSWORD}" "${VERSION}"
+        run: php .github/script/nexus_push.php "${NEXUS_REPOSITORY_URL}" "${NEXUS_USERNAME}" "${NEXUS_PASSWORD}" "${VERSION}"
         env:
           NEXUS_REPOSITORY_URL: ${{ secrets.NEXUS_REPOSITORY_URL }}
           NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
