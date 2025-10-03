@@ -59,11 +59,15 @@ class MigrateDB extends Command
 
         \asort($result);
 
+        // d($result);
+
         foreach ($result as &$dir) {
 
             $dir = \realpath("{$home}$dir");
             $dir = $dir ? $dir : null;
         }
+
+        // d($result);
 
         unset($dir);
 
@@ -136,11 +140,20 @@ class MigrateDB extends Command
 
                 $files[$dir_index][$index] = $path;
             }
+
+            if (isset($files[$dir_index]) && \is_array($files[$dir_index])) {
+
+                \ksort($files[$dir_index]);
+                // d($files[$dir_index]);
+            }
         }
 
 
 
         foreach ($files as $dir) {
+
+            // d($dir);
+
             foreach ($dir as $file) {
 
                 $result[] = $file;
@@ -186,15 +199,16 @@ class MigrateDB extends Command
      *
      * @return array
      */
-    private function getExists(): array {
+    private function getExists(): array
+    {
 
         $result = [];
 
         $files = collect(File::files(base_path() . '/database/migrations/'))
-                ->map(function ($path) {
-                    return basename($path);
-                })
-                ->toArray();
+            ->map(function ($path) {
+                return basename($path);
+            })
+            ->toArray();
 
         // d($files);
 
@@ -216,7 +230,6 @@ class MigrateDB extends Command
             }
 
             $result[$hash] = $file;
-
         }
 
 
@@ -262,14 +275,12 @@ class MigrateDB extends Command
             return;
         }
 
-        $message = "{$file} -> {$migration}"; 
+        $message = "{$file} -> {$migration}";
         echo "\033[32m{$message}\033[0m\n";
 
         $contents = File::get($template);
         $contents = \str_replace('$filename', "\base_path() . '/{$file}'", $contents);
         \file_put_contents($migration, $contents);
-
-        
     }
 
 
@@ -296,7 +307,7 @@ class MigrateDB extends Command
             if ($ext == 'php') {
 
                 $this->procFile($file, \base_path() . '/vendor/az/laravel/template/migrations/php.php');
-                continue;                
+                continue;
             }
 
             $message = "Unsupported file extension: {$file}";
