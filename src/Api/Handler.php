@@ -21,6 +21,23 @@ class Handler
      */
     private Request $request;
 
+    /**
+     * 
+     * @param int $code
+     * @param mixed $message
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public static function getError(int $code = 500, $message = 'Unknown'): mixed
+    {
+
+        return response()
+            ->json([
+                'error' => true,
+                'code' => $code,
+                'message' => $message,
+            ], $code)
+            ->header('Content-Type', 'application/vnd.api+json');
+    }
 
     /**
      * __construct
@@ -79,7 +96,7 @@ class Handler
             }
 
             return response($result);
-            
+
         } catch (\Throwable $th) {
 
             $code = $th->getCode();
@@ -90,13 +107,16 @@ class Handler
                 $code = 500;
             }
 
-            return response()
-                ->json([
-                    'error' => true,
-                    'code' => $code,
-                    'message' => $th->getMessage(),
-                ], $code)
-                ->header('Content-Type', 'application/vnd.api+json');
+            
+            return static::getError($code, $th->getMessage());
+
+            // return response()
+            //     ->json([
+            //         'error' => true,
+            //         'code' => $code,
+            //         'message' => $th->getMessage(),
+            //     ], $code)
+            //     ->header('Content-Type', 'application/vnd.api+json');
         }
     }
 }
