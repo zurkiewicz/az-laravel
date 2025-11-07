@@ -22,6 +22,27 @@ class Handler
     private Request $request;
 
 
+
+    /**
+     * Summary of getError
+     * @param int $code
+     * @param string $message
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public static function getError(int $code, string $message): \Illuminate\Http\JsonResponse
+    {
+
+        return response()
+            ->json([
+                'error' => true,
+                'code' => $code,
+                'message' => $message,
+            ], $code)
+            ->header('Content-Type', 'application/vnd.api+json');
+
+    }
+
+
     /**
      * __construct
      *
@@ -57,7 +78,7 @@ class Handler
      * Create a safe response, including an exception handler.
      *
      * @param callable $callback
-     * @return \Illuminate\Http\Response|\Illuminate\Contracts\Routing\ResponseFactory|Symfony\Component\HttpFoundation\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Contracts\Routing\ResponseFactory|Symfony\Component\HttpFoundation\Response|\Illuminate\Http\JsonResponse
      */
     public function response($callback)
     {
@@ -79,7 +100,7 @@ class Handler
             }
 
             return response($result);
-            
+
         } catch (\Throwable $th) {
 
             $code = $th->getCode();
@@ -90,13 +111,15 @@ class Handler
                 $code = 500;
             }
 
-            return response()
-                ->json([
-                    'error' => true,
-                    'code' => $code,
-                    'message' => $th->getMessage(),
-                ], $code)
-                ->header('Content-Type', 'application/vnd.api+json');
+            return static::getError($code, $th->getMessage());
+
+            // return response()
+            //     ->json([
+            //         'error' => true,
+            //         'code' => $code,
+            //         'message' => $th->getMessage(),
+            //     ], $code)
+            //     ->header('Content-Type', 'application/vnd.api+json');
         }
     }
 }
