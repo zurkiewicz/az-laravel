@@ -13,12 +13,3 @@ Run composer
 ```bash
 composer require az/laravel:^1.0
 ```
-
-### Add commands:
-In ./app/app/Console/Kernel.php add to command list:
-
-```php
-protected $commands = [
-    \AZ\Laravel\Console\MigrateDB::class,
-];
-```
